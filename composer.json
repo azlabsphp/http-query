@@ -1,0 +1,30 @@
+{
+    "name": "drewlabs/rest-query",
+    "description": "REST service query implementation",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Drewlabs\\RestQuery\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "azandrew-sidoine",
+            "email": "asmyns.platonnas29@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=7.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=6.0",
+        "drewlabs/curl-rest-client": "^0.2.0"
+    },
+    "suggest": {
+        "drewlabs/curl-rest-client": "Required for making http request using the RESTQueryClient",
+        "drewlabs/overloadable": "Request by the RESTQueryClient class implementation"
+    }
+}
