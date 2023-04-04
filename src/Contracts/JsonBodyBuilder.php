@@ -8,7 +8,7 @@ declare(strict_types=1);
  * file that was distributed with this source code.
 */
 
-namespace Drewlabs\RestQuery;
+namespace Drewlabs\RestQuery\Contracts;
 
 interface JsonBodyBuilder
 {

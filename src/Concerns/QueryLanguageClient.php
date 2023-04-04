@@ -19,8 +19,8 @@ use Drewlabs\Curl\REST\Exceptions\RequestException;
 use Drewlabs\Curl\REST\Testing\TestClient;
 use Drewlabs\Overloadable\MethodCallExpection;
 use Drewlabs\Overloadable\Overloadable;
-use Drewlabs\RestQuery\JsonBodyBuilder;
 use Drewlabs\RestQuery\Concerns\Testable;
+use Drewlabs\RestQuery\Contracts\JsonBodyBuilder;
 
 trait QueryLanguageClient
 {

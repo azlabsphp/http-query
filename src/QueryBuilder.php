@@ -10,6 +10,8 @@ declare(strict_types=1);
 
 namespace Drewlabs\RestQuery;
 
+use Drewlabs\RestQuery\Contracts\JsonBodyBuilder;
+
 final class QueryBuilder implements JsonBodyBuilder
 {
 	/**
