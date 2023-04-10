@@ -58,7 +58,7 @@ trait QueryLanguageClient
     {
         $client =  Client::new();
         foreach ($this->__HEADERS__ as $key => $value) {
-            $client = $client->setHeader($key, implode(", ", $value));
+            $client = $client->setHeader($key, implode(", ", is_array($value) ? $value : [$value]));
         }
         return $client;
     }
