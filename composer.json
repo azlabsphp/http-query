@@ -26,6 +26,6 @@
     },
     "suggest": {
         "drewlabs/curl-rest-client": "Required for making http request using the RESTQueryClient",
-        "drewlabs/overloadable": "Request by the RESTQueryClient class implementation"
+        "drewlabs/overloadable": "Request by the QueryLanguageClient class implementation to provide custom method overloading"
     }
 }
