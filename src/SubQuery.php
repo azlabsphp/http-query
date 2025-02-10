@@ -8,11 +8,10 @@ declare(strict_types=1);
  * file that was distributed with this source code.
 */
 
-namespace Drewlabs\RestQuery;
+namespace Drewlabs\Query\Http;
 
 class SubQuery
 {
-
 	/** @var string */
 	private $method;
 

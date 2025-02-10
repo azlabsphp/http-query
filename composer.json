@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Drewlabs\\RestQuery\\": "src/"
+            "Drewlabs\\Query\\Http\\": "src/"
         }
     },
     "authors": [
@@ -17,12 +17,13 @@
     "minimum-stability": "dev",
     "prefer-stable": true,
     "require": {
-        "php": ">=7.2"
+        "php": ">=7.2",
+        "drewlabs/query": "^0.3.0",
+        "drewlabs/curl-client": "^0.4.0"
     },
     "require-dev": {
         "phpunit/phpunit": ">=6.0",
-        "drewlabs/curl-rest-client": "^0.2.0",
-        "drewlabs/overloadable": "^0.1.10"
+        "drewlabs/overloadable": "^0.1.10|^0.3.0"
     },
     "suggest": {
         "drewlabs/curl-rest-client": "Required for making http request using the RESTQueryClient",

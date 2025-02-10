@@ -1,102 +1,107 @@
 <?php
 
 declare(strict_types=1);
-/*
- * (c) Sidoine Azandrew <contact@liksoft.tg>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
-*/
 
-namespace Drewlabs\RestQuery;
+namespace Drewlabs\Query\Http;
 
-use Drewlabs\RestQuery\Concerns\QueryLanguageClient;
-use InvalidArgumentException;
+use Drewlabs\Curl\Client as Curl;
+use Drewlabs\Query\Http\Exceptions\RequestException;
 
-/**
- * @method bool|int delete(string $id)
- * @method bool|int delete(int $id)
- * @method mixed update(string $id, $attributes)
- * @method mixed update(string $id, $attributes, array $relations)
- * @method mixed update(int $id, $attributes)
- * @method mixed update(int $id, $attributes, array $relations)
- * @method mixed create($attributes)
- * @method mixed create($attributes, array $relations)
- * @method mixed select(string $id, array $columns = ['*'])
- * @method array|mixed select(JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100)
- * @method array|mixed select(array $query, array $columns, int $page = 1, $per_page = 100)
- * @method array|mixed select(JsonBodyBuilder $query, int $page = 1, $per_page = 100)
- * @method array|mixed select(array $query, int $page = 1, $per_page = 100)
- * 
- * @package Drewlabs\RestQuery
- */
-class Client
+final class Client
 {
-    use QueryLanguageClient;
+    /** @var Curl */
+    private $curl;
+
+    /** @var bool */
+    private $testing;
 
     /**
-     * Creates a class instance
+     * client class construct
      * 
-     * @param string $url 
-     *
-     * @throws InvalidArgumentException 
+     * @return void 
      */
-    public function __construct(string $url)
+    private function __construct(bool $testing = false)
     {
-        $this->url = $url;
+        $this->curl = new Curl();
+        $this->testing = $testing;
     }
 
     /**
-     * Creates a new class instance
-     * 
-     * @param string $url 
-     * @return Client 
-     * @throws InvalidArgumentException 
-     */
-    public static function new(string $url)
-    {
-        if (false === filter_var($url, FILTER_VALIDATE_URL)) {
-            throw new InvalidArgumentException("Expect $url parameter to be a valid resource url");
-        }
-        return new self($url);
-
-    }
-
-    /**
-     * Copy the current instance with a bearer token
-     * 
-     * @param string $token
+     * Class factory constructor
      * 
      * @return static 
      */
-    public function withBearerAuthorization(string $token)
+    public static function new(bool $testing = false)
     {
-        return $this->withAddedHeader('Authorization', 'Bearer ' . $token);
+        return new static($testing);
+    }
+
+
+    /**
+     * Send request to the backend server and return the result to the caller
+     * 
+     * @param string $url 
+     * @param string $method 
+     * @param array $body 
+     * @param array $headers 
+     * @return Response 
+     * @throws RuntimeException 
+     * @throws RequestException 
+     */
+    public function sendRequest(string $url, string $method = 'GET', array $body = [], array $headers = []): Response
+    {
+        //# TODO: Case testing, do someting
+
+        // Reset the current curl instance before sending any new HTTP request
+        $this->curl->release();
+        $this->curl->init();
+        $this->curl->setOption(\CURLOPT_RETURNTRANSFER, true);
+
+        // Sends the request to the coris webservice host
+        $this->curl->send([
+            'method' => $method,
+            'url' => $url,
+            'headers' => array_merge($headers ?? [
+                'Content-Type' => 'application/json',
+                'Accept' => '*'
+            ]),
+            'body' => $body
+        ]);
+
+        $statusCode = $this->curl->getStatusCode();
+        if ((200 > $statusCode || 204 < $statusCode)) {
+            throw new RequestException("/GET $url : Unknown Request error", $statusCode);
+        }
+
+        return new Response($this->curl->getResponse() ?? '', intval($statusCode), $this->parseHeaders($this->curl->getResponseHeaders() ?? ''));
     }
 
     /**
-     * Copy the current instance with a basic authorization
-     * 
-     * @param string $user 
-     * @param mixed $password 
-     * @return Client 
+     * Parse request string headers.
+     *
+     * @param ?string $headers
+     *
+     * @return array
      */
-    public function withBasicAuthorization(string $user, $password)
+    private function parseHeaders(string $headers)
     {
-        return $this->withAddedHeader('Authorization', 'Basic ' . base64_encode(sprintf('%s:%s', $user, $password)));
+        $headers = preg_split('/\r\n/', (string) ($headers ?? ''), -1, \PREG_SPLIT_NO_EMPTY);
+        $httpHeaders = [];
+        $httpHeaders['Request-Line'] = reset($headers) ?? '';
+        for ($i = 1; $i < \count($headers); ++$i) {
+            if (str_contains($headers[$i], ':')) {
+                [$key, $value] = array_map(static function ($item) {
+                    return $item ? trim($item) : null;
+                }, explode(':', $headers[$i], 2));
+                $httpHeaders[$key] = $value;
+            }
+        }
+
+        return $httpHeaders;
     }
 
-    /**
-     * Add a header to the request headers
-     * 
-     * @param string $name 
-     * @param string $value 
-     * @return self 
-     */
-    private function withAddedHeader(string $name, string $value)
+    public function __destruct()
     {
-        $self = clone $this;
-        $self->__HEADERS__[$name] = isset($self->__HEADERS__[$name]) ? array_merge($self->__HEADERS__[$name], [$value]) : [$value];
-        return $self;
+        $this->curl->close();
     }
 }

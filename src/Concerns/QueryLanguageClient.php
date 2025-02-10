@@ -8,19 +8,15 @@ declare(strict_types=1);
  * file that was distributed with this source code.
 */
 
-namespace Drewlabs\RestQuery\Concerns;
+namespace Drewlabs\Query\Http\Concerns;
 
 use BadMethodCallException;
-use Drewlabs\Curl\REST\Client;
-use Drewlabs\Curl\REST\Contracts\ClientInterface;
-use Drewlabs\Curl\REST\Exceptions\ClientException;
-use Drewlabs\Curl\REST\Exceptions\BadRequestException;
-use Drewlabs\Curl\REST\Exceptions\RequestException;
-use Drewlabs\Curl\REST\Testing\TestClient;
 use Drewlabs\Overloadable\MethodCallExpection;
 use Drewlabs\Overloadable\Overloadable;
-use Drewlabs\RestQuery\Concerns\Testable;
-use Drewlabs\RestQuery\Contracts\JsonBodyBuilder;
+use Drewlabs\Query\Http\Client;
+use Drewlabs\Query\Http\Contracts\JsonBodyBuilder;
+use Drewlabs\Query\Http\Testing\Testable;
+use Drewlabs\Query\Http\JsonResponse;
 
 trait QueryLanguageClient
 {
@@ -28,104 +24,74 @@ trait QueryLanguageClient
     use Overloadable;
     use Testable;
 
-    /**
-     * @var array
-     */
+    /** @var array */
     private $__HEADERS__ = [];
 
-    /**
-     * 
-     * @var string
-     */
+    /**  @var string */
     private $url;
 
-    /**
-     * Creates a new client instance
-     * 
-     * @return ClientInterface 
-     */
-    private function newClient()
-    {
-        return $this->runningTest() ? TestClient::new() : $this->createRESTClient();
-    }
-
-    /**
-     * Creates a REST client library instance
-     * 
-     * @return ClientInterface 
-     */
-    private function createRESTClient()
-    {
-        $client =  Client::new();
-        foreach ($this->__HEADERS__ as $key => $value) {
-            $client = $client->setHeader($key, implode(", ", is_array($value) ? $value : [$value]));
-        }
-        return $client;
-    }
 
     /**
      * Send a CREATE query to remote service
      * 
-     * @param JsonBodyBuilder|array $attributes 
-     * @param array|void $relations 
-     * @return array|object 
-     * 
-     * @param mixed $args 
-     * @return mixed 
+     * @param mixed ...$args 
+     * @return JsonResponse 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
-     * @throws ClientException
-     * @throws BadRequestException
-     * @throws RequestException
      */
     public function create(...$args)
     {
-        $queryFunction = function ($attributes, array $relations = []) {
-            return $this->newClient()
-                ->post($this->url, array_merge($attributes instanceof JsonBodyBuilder ? $attributes->json() : $attributes, ['_query' => ['relations' => $relations]]))
-                ->getBody();
+        $fn = function (array $attributes, array $relations = []) {
+            return Client::new($this->runningTest())
+                ->sendRequest(
+                    $this->url,
+                    'POST',
+                    array_merge($attributes, ['_query' => ['relations' => $relations]]),
+                    $this->__HEADERS__
+                )
+                ->json();
         };
         return $this->overload($args, [
-            function ($attributes) use (&$queryFunction) {
-                return $queryFunction($attributes, []);
+            function (array $attributes, ?array $relations = null) use (&$fn) {
+                return $fn($attributes, $relations ?? []);
             },
-            function ($attributes, array $relations) use (&$queryFunction) {
-                return $queryFunction($attributes, $relations);
-            },
+            function (JsonBodyBuilder $attributes, ?array $relations = null) use (&$fn) {
+                return $fn($attributes->json(), $relations ?? []);
+            }
         ]);
     }
 
     /**
      * Sends an UPDATE query to the endpoint server
      * 
-     * @param string|int $id
-     * @param JsonBodyBuilder|array $attributes 
-     * @param array $relations 
-     * @return array|object 
-     * 
-     * @param mixed $args 
-     * @return mixed 
+     * @param mixed ...$args 
+     * @return JsonResponse 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
-     * @throws ClientException
-     * @throws BadRequestException
-     * @throws RequestException
      */
     public function update(...$args)
     {
-        $queryFunction = function ($id, $attributes, $relations) {
-            return $this->newClient()
-                ->put(
-                    sprintf("%s/%s", rtrim($this->url, '/'), strval($id)),
-                    array_merge($attributes instanceof JsonBodyBuilder ? $attributes->json() : $attributes, ['_query' => ['relations' => $relations]])
-                )->getBody();
+        $fn = function ($id, $attributes, $relations) {
+            return Client::new($this->runningTest())
+                ->sendRequest(
+                    sprintf("%s/%s", rtrim($this->url, '/'), $id),
+                    'PUT',
+                    array_merge($attributes, ['_query' => ['relations' => $relations]]),
+                    $this->__HEADERS__
+                )->json();
         };
         return $this->overload($args, [
-            function (int $id, $attributes, array $relations = []) use (&$queryFunction) {
-                return $queryFunction($id, $attributes, $relations);
+            function (int $id, array $attributes, ?array $relations = null) use (&$fn) {
+                return $fn(strval($id), $attributes, $relations ?? []);
             },
-            function (string $id, $attributes, array $relations = []) use (&$queryFunction) {
-                return $queryFunction($id, $attributes, $relations);
+            function (string $id, array $attributes, ?array $relations = null) use (&$fn) {
+                return $fn($id, $attributes, $relations ?? []);
+            },
+            function (int $id, JsonBodyBuilder $attributes, ?array $relations = null) use (&$fn) {
+                return $fn(strval($id), $attributes, $relations ?? []);
+            },
+            function (string $id, JsonBodyBuilder $attributes, ?array $relations = null) use (&$fn) {
+                return $fn($id, $attributes, $relations ?? []);
             },
         ]);
     }
@@ -133,55 +99,59 @@ trait QueryLanguageClient
     /**
      * Send a select query to query server
      * 
-     * @param mixed $args 
-     * 
-     * @param mixed $args 
-     * @return mixed 
+     * @param mixed ...$args 
+     * @return JsonResponse 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
-     * @throws ClientException
-     * @throws BadRequestException
-     * @throws RequestException
      */
     public function select(...$args)
     {
+        $fn = function (string $url, array $body) {
+            return Client::new($this->runningTest())
+                ->sendRequest(
+                    $url,
+                    'GET',
+                    $body,
+                    $this->__HEADERS__
+                )->json();
+        };
         return $this->overload($args, [
-            function (array $columns = ['*']) {
-                return $this->newClient()->get($this->url, ['body' => ['_columns' => $columns ?? ['*']]])->getBody();
+            function (array $columns = ['*']) use (&$fn) {
+                return $fn($this->url, ['body' => ['_columns' => $columns ?? ['*']]]);
             },
-            function (int $id, array $columns = ['*']) {
-                return $this->newClient()->get(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
+            function (int $id, array $columns = ['*']) use (&$fn) {
+                return $fn(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
                     'body' => ['_columns' => $columns ?? ['*']]
-                ])->getBody();
+                ]);
             },
-            function (string $id, array $columns = ['*']) {
-                return $this->newClient()->get(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
+            function (string $id, array $columns = ['*']) use (&$fn) {
+                return $fn(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
                     'body' => ['_columns' => $columns ?? ['*']]
-                ])->getBody();
+                ]);
             },
-            function (JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100) {
-                return $this->newClient()->get($this->url, [
+            function (JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
+                return $fn($this->url, [
                     'body' => array_merge($query->json(), ['_columns' => $columns]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ])->getBody();
+                ]);
             },
-            function (array $query, array $columns, int $page = 1, $per_page = 100) {
-                return $this->newClient()->get($this->url, [
+            function (array $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
+                return $fn($this->url, [
                     'body' => array_merge($query, ['_columns' => $columns]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ])->getBody();
+                ]);
             },
-            function (JsonBodyBuilder $query, int $page = 1, $per_page = 100) {
-                return $this->newClient()->get($this->url, [
+            function (JsonBodyBuilder $query, int $page = 1, $per_page = 100) use (&$fn) {
+                return $fn($this->url, [
                     'body' => array_merge($query->json(), ['_columns' => ['*']]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ])->getBody();
+                ]);
             },
-            function (array $query, int $page = 1, $per_page = 100) {
-                return $this->newClient()->get($this->url, [
+            function (array $query, int $page = 1, $per_page = 100) use (&$fn) {
+                return $fn($this->url, [
                     'body' => array_merge($query, ['_columns' => ['*']]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ])->getBody();
+                ]);
             }
         ]);
     }
@@ -189,25 +159,29 @@ trait QueryLanguageClient
     /**
      * Send a DELETE query to the end server
      * 
-     * @param string|int $id 
-     * @return array|object 
-     * 
-     * @param mixed $args 
-     * @return mixed 
+     * @param mixed ...$args 
+     * @return JsonResponse 
      * @throws BadMethodCallException 
-     * @throws MethodCallExpection
-     * @throws ClientException
-     * @throws BadRequestException
-     * @throws RequestException 
+     * @throws MethodCallExpection 
      */
     public function delete(...$args)
     {
+
+        $fn = function (string $url) {
+            return Client::new($this->runningTest())
+                ->sendRequest(
+                    $url,
+                    'DELETE',
+                    [],
+                    $this->__HEADERS__
+                )->json();
+        };
         return $this->overload($args, [
-            function (int $id) {
-                return $this->newClient()->delete(sprintf("%s/%s", rtrim($this->url, '/'), strval($id)))->getBody();
+            function (int $id) use (&$fn) {
+                return $fn(sprintf("%s/%s", rtrim($this->url, '/'), strval($id)));
             },
-            function (string $id) {
-                return $this->newClient()->delete(sprintf("%s/%s", rtrim($this->url, '/'), strval($id)))->getBody();
+            function (string $id) use (&$fn) {
+                return $fn(sprintf("%s/%s", rtrim($this->url, '/'), $id));
             }
         ]);
     }

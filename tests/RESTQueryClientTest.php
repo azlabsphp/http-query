@@ -3,7 +3,7 @@
 use Drewlabs\Curl\REST\BaseResponse;
 use Drewlabs\Curl\REST\Response;
 use Drewlabs\Curl\REST\Testing\TestClient;
-use Drewlabs\RestQuery\Client;
+use Drewlabs\RestQuery\Query;
 use PHPUnit\Framework\TestCase;
 
 class RESTQueryClientTest extends TestCase
@@ -68,7 +68,7 @@ class RESTQueryClientTest extends TestCase
     public function test_create_query()
     {
         TestClient::for('api/posts', new Response($this->createPost(), 200), 'POST');
-        $result = Client::new('http://localhost/api/posts')->test()->create([]);
+        $result = Query::new('http://localhost/api/posts')->test()->create([]);
         $this->assertEquals($this->createPost(), $result);
     }
 
@@ -76,23 +76,23 @@ class RESTQueryClientTest extends TestCase
     {
         TestClient::for('api/posts', new Response($this->getPosts(), 200));
         TestClient::for('api/posts/2', new Response($this->getPost(2), 200));
-        $result = Client::new('http://localhost/api/posts')->test()->select(2);
+        $result = Query::new('http://localhost/api/posts')->test()->select(2);
         $this->assertEquals($this->getPost(2), $result);
-        $result = Client::new('http://localhost/api/posts')->test()->select();
+        $result = Query::new('http://localhost/api/posts')->test()->select();
         $this->assertEquals($this->getPosts(), $result);
     }
 
     public function test_update_query()
     {
         TestClient::for('api/posts/2', new Response($this->updatePost(), 200), 'PUT');
-        $result = Client::new('http://localhost/api/posts')->test()->update(2, []);
+        $result = Query::new('http://localhost/api/posts')->test()->update(2, []);
         $this->assertEquals($this->updatePost(), $result);
     }
 
     public function test_delete_query()
     {
         TestClient::for('api/posts/2', new BaseResponse(false, 200), 'DELETE');
-        $result = Client::new('http://localhost/api/posts')->test()->delete(2);
+        $result = Query::new('http://localhost/api/posts')->test()->delete(2);
         $this->assertEquals(false, $result);
     }
 }

@@ -10,13 +10,10 @@ declare(strict_types=1);
 
 namespace Drewlabs\Query\Http\Contracts;
 
-interface JsonBodyBuilder
-{
-	/**
-	 * Rerturns the json representation of the builder instance
-	 * 
-	 * @return array|string
-	 */
-	public function json();
+use Drewlabs\Query\Http\Response;
 
+interface ClientInterface
+{
+    // Curl $curl,
+    public function sendRequest( string $url, string $method = 'GET', array $body = [], array $headers = []): Response;
 }

@@ -8,14 +8,11 @@ declare(strict_types=1);
  * file that was distributed with this source code.
 */
 
-namespace Drewlabs\RestQuery\Concerns;
+namespace Drewlabs\Query\Http\Testing;
 
 trait Testable
 {
-    /**
-     * 
-     * @var bool
-     */
+    /** @var bool */
     private $testing = false;
 
     /**
@@ -37,6 +34,5 @@ trait Testable
     public function runningTest()
     {
         return boolval($this->testing);
-
     }
 }
