@@ -13,16 +13,10 @@ namespace Drewlabs\RestQuery;
 class SubQuery
 {
 
-	/**
-	 * 
-	 * @var string
-	 */
+	/** @var string */
 	private $method;
 
-	/**
-	 * 
-	 * @var array|mixed
-	 */
+	/** @var array|mixed */
 	private $params;
 
 	/**
@@ -74,7 +68,6 @@ class SubQuery
 	 */
 	public function json()
 	{
-		# code...
 		return [
 			'method' => $this->method,
 			'params' => $this->params
