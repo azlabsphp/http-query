@@ -12,27 +12,51 @@ namespace Drewlabs\Query\Http;
 
 use Drewlabs\Query\Http\Concerns\QueryLanguageClient;
 use InvalidArgumentException;
+// use Drewlabs\Query\Builder;
+use Drewlabs\Query\Utils\SubQuery;
 
 /**
- * @method bool|int delete(string $id)
- * @method bool|int delete(int $id)
- * @method mixed update(string $id, $attributes)
- * @method mixed update(string $id, $attributes, array $relations)
- * @method mixed update(int $id, $attributes)
- * @method mixed update(int $id, $attributes, array $relations)
- * @method mixed create($attributes)
- * @method mixed create($attributes, array $relations)
- * @method mixed select(string $id, array $columns = ['*'])
- * @method array|mixed select(JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100)
- * @method array|mixed select(array $query, array $columns, int $page = 1, $per_page = 100)
- * @method array|mixed select(JsonBodyBuilder $query, int $page = 1, $per_page = 100)
- * @method array|mixed select(array $query, int $page = 1, $per_page = 100)
+ * @method JsonResponse delete(string $id)
+ * @method JsonResponse delete(int $id)
+ * @method JsonResponse update(string $id, $attributes)
+ * @method JsonResponse update(string $id, $attributes, array $relations)
+ * @method JsonResponse update(int $id, $attributes)
+ * @method JsonResponse update(int $id, $attributes, array $relations)
+ * @method JsonResponse create($attributes)
+ * @method JsonResponse create($attributes, array $relations)
+ * @method JsonResponse select(string $id, array $columns = ['*'])
+ * @method JsonResponse select(JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100)
+ * @method JsonResponse select(array $query, array $columns, int $page = 1, $per_page = 100)
+ * @method JsonResponse select(JsonBodyBuilder $query, int $page = 1, $per_page = 100)
+ * @method JsonResponse select(array $query, int $page = 1, $per_page = 100)
+ * 
+ * 
+ * @method static and($column, ?string $operator = null, string|SubQuery|\Closure $value = null)
+ * @method static or($column, $operator = null, string|SubQuery|\Closure $value = null)
+ * @method static eq(string $column, $value = null, $and = true)
+ * @method static neq(string $column, $value = null, $and = true)
+ * @method static lt(string $column, $value = null, $and = true)
+ * @method static lte(string $column, $value = null, $and = true)
+ * @method static gt(string $column, $value = null, $and = true)
+ * @method static gte(string $column, $value = null, $and = true)
+ * @method static like(string $column, $value = null, $and = true)
+ * @method static date($column, ?string $operator = null, $value = null)
+ * @method static orDate($column, ?string $operator = null, $value = null)
+ * @method static in(string $column, array $values)
+ * @method static notIn(string $column, array $values)
+ * @method static exists(string $as, $query = null)
+ * @method static orExists(string $column, $query = null)
+ * @method static notExists(string $column, $query = null)
+ * @method static orNotExists(string $column, $query = null)
+ * @method static sort(string $column, int $order = 1)
  * 
  * @package Drewlabs\Query\Http\Concerns
  */
 class Query
 {
     use QueryLanguageClient;
+
+    private $builder;
 
     /**
      * Creates a class instance

@@ -2,9 +2,11 @@
 
 namespace Drewlabs\Query\Http;
 
+use ArrayAccess;
 use Drewlabs\Query\Http\Concerns\Response;
+use RuntimeException;
 
-class JsonResponse
+class JsonResponse implements ArrayAccess
 {
     use Response;
 
@@ -26,6 +28,27 @@ class JsonResponse
         $this->headers = $headers ?? [];
     }
 
+    public function offsetExists($offset): bool
+    {
+        return array_key_exists($offset, $this->data) && isset($this->data[$offset]);
+    }
+
+    #[\ReturnTypeWillChange]
+    public function offsetGet($offset)
+    {
+        return $this->get($offset);
+    }
+
+    public function offsetSet(mixed $offset, mixed $value): void
+    {
+        throw new RuntimeException('Cannot modify response body');
+    }
+
+    public function offsetUnset(mixed $offset): void
+    {
+        throw new RuntimeException('Cannot modify response body');
+    }
+
     /**
      * returns the json response body
      * 
@@ -35,8 +58,6 @@ class JsonResponse
     {
         return $this->data;
     }
-
-
 
     /**
      * Get the value of a given key or default if no value is found
@@ -67,4 +88,7 @@ class JsonResponse
         }
         return $this->data[$name] ?? call_user_func($default, $name);
     }
+
+    //#TODO: Add getResult and getIterator implementation
+    // public function getResult
 }

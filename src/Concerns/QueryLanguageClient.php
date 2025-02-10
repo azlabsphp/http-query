@@ -20,7 +20,6 @@ use Drewlabs\Query\Http\JsonResponse;
 
 trait QueryLanguageClient
 {
-
     use Overloadable;
     use Testable;
 

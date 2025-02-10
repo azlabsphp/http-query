@@ -14,6 +14,5 @@ use Drewlabs\Query\Http\Response;
 
 interface ClientInterface
 {
-    // Curl $curl,
     public function sendRequest( string $url, string $method = 'GET', array $body = [], array $headers = []): Response;
 }
