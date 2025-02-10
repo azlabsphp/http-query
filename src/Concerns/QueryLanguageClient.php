@@ -18,16 +18,15 @@ use Drewlabs\Query\Http\Contracts\JsonBodyBuilder;
 use Drewlabs\Query\Http\Testing\Testable;
 use Drewlabs\Query\Http\JsonResponse;
 
+
+/**
+ * @method string getUrl()
+ * @method array getHeaders()
+ */
 trait QueryLanguageClient
 {
     use Overloadable;
     use Testable;
-
-    /** @var array */
-    private $__HEADERS__ = [];
-
-    /**  @var string */
-    private $url;
 
 
     /**
@@ -43,10 +42,10 @@ trait QueryLanguageClient
         $fn = function (array $attributes, array $relations = []) {
             return Client::new($this->runningTest())
                 ->sendRequest(
-                    $this->url,
+                    $this->getUrl(),
                     'POST',
                     array_merge($attributes, ['_query' => ['relations' => $relations]]),
-                    $this->__HEADERS__
+                    $this->getHeaders()
                 )
                 ->json();
         };
@@ -73,10 +72,10 @@ trait QueryLanguageClient
         $fn = function ($id, $attributes, $relations) {
             return Client::new($this->runningTest())
                 ->sendRequest(
-                    sprintf("%s/%s", rtrim($this->url, '/'), $id),
+                    sprintf("%s/%s", rtrim($this->getUrl(), '/'), $id),
                     'PUT',
                     array_merge($attributes, ['_query' => ['relations' => $relations]]),
-                    $this->__HEADERS__
+                    $this->getHeaders()
                 )->json();
         };
         return $this->overload($args, [
@@ -103,7 +102,7 @@ trait QueryLanguageClient
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
      */
-    public function select(...$args)
+    public function get(...$args)
     {
         $fn = function (string $url, array $body) {
             return Client::new($this->runningTest())
@@ -111,43 +110,43 @@ trait QueryLanguageClient
                     $url,
                     'GET',
                     $body,
-                    $this->__HEADERS__
+                    $this->getHeaders()
                 )->json();
         };
         return $this->overload($args, [
             function (array $columns = ['*']) use (&$fn) {
-                return $fn($this->url, ['body' => ['_columns' => $columns ?? ['*']]]);
+                return $fn($this->getUrl(), ['body' => ['_columns' => $columns ?? ['*']]]);
             },
             function (int $id, array $columns = ['*']) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), [
                     'body' => ['_columns' => $columns ?? ['*']]
                 ]);
             },
             function (string $id, array $columns = ['*']) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->url ?? '', '/'), strval($id)), [
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), [
                     'body' => ['_columns' => $columns ?? ['*']]
                 ]);
             },
             function (JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->url, [
+                return $fn($this->getUrl(), [
                     'body' => array_merge($query->json(), ['_columns' => $columns]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
                 ]);
             },
             function (array $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->url, [
+                return $fn($this->getUrl(), [
                     'body' => array_merge($query, ['_columns' => $columns]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
                 ]);
             },
             function (JsonBodyBuilder $query, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->url, [
+                return $fn($this->getUrl(), [
                     'body' => array_merge($query->json(), ['_columns' => ['*']]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
                 ]);
             },
             function (array $query, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->url, [
+                return $fn($this->getUrl(), [
                     'body' => array_merge($query, ['_columns' => ['*']]),
                     'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
                 ]);
@@ -172,15 +171,15 @@ trait QueryLanguageClient
                     $url,
                     'DELETE',
                     [],
-                    $this->__HEADERS__
+                    $this->getHeaders()
                 )->json();
         };
         return $this->overload($args, [
             function (int $id) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->url, '/'), strval($id)));
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl(), '/'), strval($id)));
             },
             function (string $id) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->url, '/'), $id));
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl(), '/'), $id));
             }
         ]);
     }

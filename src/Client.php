@@ -67,10 +67,9 @@ final class Client
             ]),
             'body' => $body
         ]);
-
         $statusCode = $this->curl->getStatusCode();
         if ((200 > $statusCode || 204 < $statusCode)) {
-            throw new RequestException("/GET $url : Unknown Request error", $statusCode);
+            throw new RequestException(sprintf('/%s %s, [%s] %s', $method, $url, $statusCode, $this->curl->getResponse() ?? ''));
         }
 
         return new Response($this->curl->getResponse() ?? '', intval($statusCode), $this->parseHeaders($this->curl->getResponseHeaders() ?? ''));
