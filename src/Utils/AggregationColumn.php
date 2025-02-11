@@ -45,7 +45,7 @@ final class AggregationColumn
 
     public function __toString(): string
     {
-        $relation = $this->snake($this->relation);
+        $relation = $this->relation  ? $this->snake($this->relation) : $this->relation;
         return !is_null($relation) ? sprintf('%s_%s%s', $relation, $this->method, $this->column === '*' ? '' : sprintf('_%s', $this->column)) : sprintf("%s_%s", $this->method, $this->column);
     }
 

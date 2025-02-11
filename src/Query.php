@@ -60,7 +60,7 @@ final class Query implements BuilderInterface
     public function __construct(string $host)
     {
         $this->host = $host;
-        $this->uriComponents = [rtrim($host, '/')];
+        $this->setUriComponents([rtrim($host, '/')]);
         $this->builder = QueryBuilder::new();
     }
 
@@ -71,9 +71,9 @@ final class Query implements BuilderInterface
      * @return Query 
      * @throws InvalidArgumentException 
      */
-    public static function new(string $host)
+    public static function new(string $host = '')
     {
-        if (false === filter_var($host, FILTER_VALIDATE_URL)) {
+        if (!empty($host) && false === filter_var($host, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException("Expect $host parameter to be a valid resource url");
         }
         return new static($host);
@@ -122,7 +122,7 @@ final class Query implements BuilderInterface
 
     public function from(string $path)
     {
-        $this->uriComponents = [rtrim($this->host), ltrim($path, '/')];
+        $this->setUriComponents([rtrim($this->host), ltrim($path, '/')]);
         return $this;
     }
 
@@ -241,6 +241,19 @@ final class Query implements BuilderInterface
     public function getHeaders()
     {
         return $this->__HEADERS__;
+    }
+
+    /**
+     * Set uri component property value
+     * 
+     * @param array $components 
+     * @return void 
+     */
+    private function setUriComponents(array $components)
+    {
+        $this->uriComponents = array_filter($components, function($item) {
+            return !empty($item);
+        });
     }
 
     /**
