@@ -96,7 +96,7 @@ $b = $b->eq('title', 'Lorem Ipsum')->select('*', 'comments');
 
 **Note** As shown in the examples above, `query` object provides a fluent `api` for building complex queries using PHP function calls.
 
-- Executing composed query
+### Executing composed query
 
 After building query using the fluent API, developpers can send query requests to backend servers using the `execute` method:
 
@@ -120,13 +120,18 @@ print_r($result->getBody()); // returns the actual body of the query
 print_r($result->first()); // return the first element of the list of items returned by the query
 ```
 
-- Aggregation framework
+### Aggregation framework
 
 The `query` api also support some aggregation method for performing basic mathematic computation on the resource being selected instead of returning an entire collection:
-    *   `min(string column, string relation)`: return the minimum value of the column in the selected resource table
-    *   `max(string column, string relation)`: return the maximum value of the column in the selected resource table
-    *   `sum(string column, string relation)`: computes and return the sum of all values in the given column in the selected resource table
-    *   `avg(string column, string relation)`: computes and return the average of all values in the given column in the selected resource table
-    *   `count(string column, string relation)`: Count the total elements matching matching the provided query parameters.
+
+- `min(string column, string relation)`: return the minimum value of the column in the selected resource table
+
+- `max(string column, string relation)`: return the maximum value of the column in the selected resource table
+
+- `sum(string column, string relation)`: computes and return the sum of all values in the given column in the selected resource table
+
+- `avg(string column, string relation)`: computes and return the average of all values in the given column in the selected resource table
+
+- `count(string column, string relation)`: Count the total elements matching matching the provided query parameters.
 
 **Note** All aggregation method support a second parameter allowing developpers to query a releated resource in the application database.
