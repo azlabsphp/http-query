@@ -1,4 +1,4 @@
-# REST Query
+# HTTP Query
 
 This library provides a client side implementation of HTTP query (similar to graphql) that allows developpers to easily customize data requested from web resources (that support the server side language implementation) and directly sending complex query parameters.
 
