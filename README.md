@@ -1,15 +1,6 @@
 # REST Query
 
-This library provides a client side implementation of RESTful services query (similar to graphql) that allows developpers to easily customize data requested from web resources and directly sending complex query parameters to REST service.
-
-**Requirements**
-The library only works with compatible web services. Therefore, developpers must provides an implementation that parses, compiles and process query send to the service.
-
-## Installation
-
-Using composer PHP package manager:
-
-> composer require drewlabs/rest-query
+This library provides a client side implementation of HTTP query (similar to graphql) that allows developpers to easily customize data requested from web resources (that support the server side language implementation) and directly sending complex query parameters.
 
 ## Usage
 
@@ -17,24 +8,19 @@ Using composer PHP package manager:
 
 The library comes with a query builder class that provides a fluent interface for building and compiling queries. An example is as follow:
 
+- Creating a query object
+
 ```php
-use Drewlabs\RestQuery\QueryBuilder;
+use Drewlabs\Query\Http\Query;
 
-// ...
+// Instruct the query object to use `http://127.0.0.1:8080` as base domain
+$b = Query::new('http://127.0.0.1:8080')
 
+            // Select the api path (path to the resource being queried)
+            ->from('api/v1/examples')
 
-// Building the query and using the query builder fluent API
-$builder = QueryBuilder::new()
-            ->eq('title', 'Lorem Ipsum')
-            ->neq('id', 10)
-            ->where(function (QueryBuilder $builder) {
-                return $builder->in('tags', ['I', 'L', 'F'])
-                    ->gt('likes', 120)
-                    ->gte('groups', 10);
-            });
-
-// Compiling the query output to JSON string
-$result = $builder->json();
+            // Add a Bearer Authorization header to the request
+            ->withAuthorization(BEARER_TOKEN);
 ```
 
 As seen above, the API comes with numerous fluent methods for defining query intention:
@@ -44,7 +30,7 @@ As seen above, the API comes with numerous fluent methods for defining query int
 The `eq` method allow developpers to build a `COLUMN=VALUE` like query:
 
 ```php
-$result = QueryBuilder::new()->eq('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '=', 'Lorem Ipsum']]]
+$b = $b->eq('title', 'Lorem Ipsum');
 ```
 
 - neq
@@ -52,7 +38,7 @@ $result = QueryBuilder::new()->eq('title', 'Lorem Ipsum')->getQuery(); // ['wher
 The `neq` is the inverse of the `eq` query method:
 
 ```php
-$result = QueryBuilder::new()->neq('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '<>, 'Lorem Ipsum']]]
+$b = $b->neq('title', 'Lorem Ipsum');
 ```
 
 - lte / lt
@@ -60,8 +46,8 @@ $result = QueryBuilder::new()->neq('title', 'Lorem Ipsum')->getQuery(); // ['whe
 The `lte` and `lt` respectively allow developper to construct a query that check if a column value is less than (less than or equal to) a given value.
 
 ```php
-$result = QueryBuilder::new()->lt('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '<', 'Lorem Ipsum']]]
-$result = QueryBuilder::new()->lte('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '<=', 'Lorem Ipsum']]]
+$b = $b->lt('title', 'Lorem Ipsum')
+       ->lte('title', 'Lorem Ipsum');
 ```
 
 - gte / gt
@@ -69,8 +55,8 @@ $result = QueryBuilder::new()->lte('title', 'Lorem Ipsum')->getQuery(); // ['whe
 The `gte` and `gt` respectively allow developper to construct a query that check if a column value is greater than (greater than or equal to) a given value.
 
 ```php
-$result = QueryBuilder::new()->gt('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '>', 'Lorem Ipsum']]]
-$result = QueryBuilder::new()->gte('title', 'Lorem Ipsum')->getQuery(); // ['where' => [['title, '>=', 'Lorem Ipsum']]]
+$b = $b->gt('title', 'Lorem Ipsum')
+       ->gte('title', 'Lorem Ipsum');
 ```
 
 - in
@@ -78,7 +64,7 @@ $result = QueryBuilder::new()->gte('title', 'Lorem Ipsum')->getQuery(); // ['whe
 The `in` clause search for value that exists in a list of provided values:
 
 ```php
-$result = QueryBuilder::new()->in('rates', [3, 3.5, 9])->getQuery(); // ['in' => [['title, [3, 3.5, 9]]]]
+$b = $b->in('rates', [3, 3.5, 9]);
 ```
 
 - exists
@@ -86,8 +72,8 @@ $result = QueryBuilder::new()->in('rates', [3, 3.5, 9])->getQuery(); // ['in' =>
 The `exists` clause allow to query for relationship existance in the database.
 
 ```php
-$result = QueryBuilder::new()->exists('comments')->getQuery(); // ['has' => [['comments']]]
-$result = QueryBuilder::new()->exists('comments', new SubQuery('where', ['likes', '>', 1000]))->getQuery(); // ['has' => [['column' => 'comments', 'method' => ['params' => ['likes', '>', 1000], 'method' => 'where' ]]]]
+$b = $b->exists('comments')
+        ->exists('comments', new SubQuery('where', ['likes', '>', 1000]));
 ```
 
 - sort
@@ -97,7 +83,7 @@ The `sort` clause allow developpers to apply a sort by `column` on the result se
 **Note** The sort order is defined by an integer value. Any value greater than `0` get converted to `ASC` while any value less than `0` is converted to `DESC`
 
 ```php
-$result = QueryBuilder::new()->sort('created_at', -1)->getQuery(); // ['sort' => ['by' => 'created_at', 'order' => 'DESC']]
+$b = $b->sort('created_at', -1); // ['sort' => ['by' => 'created_at', 'order' => 'DESC']]
 ```
 
 - select
@@ -105,13 +91,42 @@ $result = QueryBuilder::new()->sort('created_at', -1)->getQuery(); // ['sort' =>
 The `select` clause allows developpers to specify the list of columns to select from the query server:
 
 ```php
-$columns = QueryBuilder::new()->eq('title', 'Lorem Ipsum')->select('*', 'comments')->getColumns(); // ['*', 'comments'] 
+$b = $b->eq('title', 'Lorem Ipsum')->select('*', 'comments');
 ```
 
-## The REST query client
+**Note** As shown in the examples above, `query` object provides a fluent `api` for building complex queries using PHP function calls.
 
-The REST query client is an implementation similar to the query language from `drewlabs/database` library that provides 4 overloaded methods `select()`, `update()`, `delete()` and `create()`, sort sending CRUD action to endpoint servers.
+- Executing composed query
 
-It required `drewlabs/curl-rest-client` library for actually doing the http request to server. Therefore in order to use the rest query client, developpers are required to execute the following command to install the required dependencies:
+After building query using the fluent API, developpers can send query requests to backend servers using the `execute` method:
 
-> composer require drewlabs/curl-rest-client
+
+```php
+use Drewlabs\Query\Http\Query;
+
+$b = Query::new('http://127.0.0.1:8080')
+            ->from('api/v1/examples')
+            ->withAuthorization(BEARER_TOKEN);
+
+$b->date('created_at', '>', '2023-12-01')
+    ->date('created_at', '<', '2025-02-01')
+    ->exists('comments', fn($b) => $b->in('tags', [1, 4]));
+
+// Executing the query
+$result = $b->limit($limit)->execute(); // Calling execute runs the query against the HTTP api and return an instance of \Drewlabs\Query\Http\QueryResult object
+
+print_r($result->getBody()); // returns the actual body of the query
+
+print_r($result->first()); // return the first element of the list of items returned by the query
+```
+
+- Aggregation framework
+
+The `query` api also support some aggregation method for performing basic mathematic computation on the resource being selected instead of returning an entire collection:
+    *   `min(string column, string relation)`: return the minimum value of the column in the selected resource table
+    *   `max(string column, string relation)`: return the maximum value of the column in the selected resource table
+    *   `sum(string column, string relation)`: computes and return the sum of all values in the given column in the selected resource table
+    *   `avg(string column, string relation)`: computes and return the average of all values in the given column in the selected resource table
+    *   `count(string column, string relation)`: Count the total elements matching matching the provided query parameters.
+
+**Note** All aggregation method support a second parameter allowing developpers to query a releated resource in the application database.

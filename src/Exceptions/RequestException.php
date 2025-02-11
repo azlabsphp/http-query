@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drewlabs\Query\Http\Exceptions;
 
 use Exception;
 
-class RequestException extends Exception
+final class RequestException extends Exception
 {
 
 }

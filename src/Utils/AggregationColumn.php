@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drewlabs\Query\Http\Utils;
 
-class AggregationColumn
+final class AggregationColumn
 {
     /** @var string */
     private $method;
@@ -43,6 +45,24 @@ class AggregationColumn
 
     public function __toString(): string
     {
-        return !is_null($this->relation) ? sprintf('%s_%s', $this->relation, $this->method) : sprintf("%s_%s", $this->method, $this->column);
+        $relation = $this->snake($this->relation);
+        return !is_null($relation) ? sprintf('%s_%s%s', $relation, $this->method, $this->column === '*' ? '' : sprintf('_%s', $this->column)) : sprintf("%s_%s", $this->method, $this->column);
+    }
+
+    private function snake(string $haystack, $delimiter = '_', $escape = '\\')
+    {
+        if ((null === $haystack) || empty($haystack)) {
+            return $haystack;
+        }
+
+        return str_replace(
+            ' ',
+            '',
+            str_replace(
+                [sprintf('%s%s', $escape, $delimiter), $escape],
+                $delimiter,
+                trim(strtolower(preg_replace('/([A-Z])([a-z\d])/', $delimiter . '$0', preg_replace("/[$delimiter]/", $escape, $haystack))), $delimiter)
+            )
+        );
     }
 }

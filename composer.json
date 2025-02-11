@@ -1,32 +1,41 @@
 {
-    "name": "drewlabs/rest-query",
-    "description": "REST service query implementation",
-    "type": "library",
-    "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Drewlabs\\Query\\Http\\": "src/"
-        }
-    },
-    "authors": [
-        {
-            "name": "azandrew-sidoine",
-            "email": "asmyns.platonnas29@gmail.com"
-        }
-    ],
-    "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require": {
-        "php": ">=7.2",
-        "drewlabs/query": "^0.3.0",
-        "drewlabs/curl-client": "^0.4.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": ">=6.0",
-        "drewlabs/overloadable": "^0.1.10|^0.3.0"
-    },
-    "suggest": {
-        "drewlabs/curl-rest-client": "Required for making http request using the RESTQueryClient",
-        "drewlabs/overloadable": "Request by the QueryLanguageClient class implementation to provide custom method overloading"
+  "name": "drewlabs/http-query",
+  "description": "HTTP Api query client sdk",
+  "type": "library",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Drewlabs\\Query\\Http\\": "src/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Drewlabs\\Query\\Http\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "azandrew-sidoine",
+      "email": "asmyns.platonnas29@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "require": {
+    "php": ">=7.2",
+    "drewlabs/query": "^0.3.0",
+    "drewlabs/curl-client": "^0.4.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">=6.0",
+    "drewlabs/overloadable": "^0.1.10|^0.3.0"
+  },
+  "suggest": {
+    "drewlabs/curl-rest-client": "Required for making http request using the RESTQueryClient",
+    "drewlabs/overloadable": "Request by the QueryLanguageClient class implementation to provide custom method overloading"
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true
+  }
 }

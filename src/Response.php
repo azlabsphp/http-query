@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drewlabs\Query\Http;
 
 use Drewlabs\Curl\Converters\JSONDecoder;
@@ -7,7 +9,7 @@ use Drewlabs\Query\Http\Exceptions\ResponseException;
 use JsonException;
 use Drewlabs\Query\Http\Concerns\Response as ResponseTrait;
 
-class Response
+final class Response
 {
     use ResponseTrait;
 
@@ -65,14 +67,14 @@ class Response
     /**
      * Creates a json decoded response object from the current response
      * 
-     * @return JsonResponse 
+     * @return QueryResult 
      * @throws JsonException 
      */
     public function json()
     {
         try {
             $result = (new JSONDecoder(true))->decode($this->body) ?? [];
-            return  new JsonResponse((array) $result, $this->getStatusCode(), $this->getHeaders());
+            return  new QueryResult((array) $result, $this->getStatusCode(), $this->getHeaders());
         } catch (\Throwable $e) {
             throw new ResponseException(sprintf('Error parsing response, Invalid json response: %s', $e->getMessage()));
         }

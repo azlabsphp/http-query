@@ -5,35 +5,35 @@ declare(strict_types=1);
 namespace Drewlabs\Query\Http;
 
 use Drewlabs\Curl\Client as Curl;
+use Drewlabs\Query\Http\Contracts\ClientInterface;
 use Drewlabs\Query\Http\Exceptions\RequestException;
 
-final class Client
+final class Client implements ClientInterface
 {
     /** @var Curl */
     private $curl;
-
-    /** @var bool */
-    private $testing;
 
     /**
      * client class construct
      * 
      * @return void 
      */
-    private function __construct(bool $testing = false)
+    private function __construct()
     {
         $this->curl = new Curl();
-        $this->testing = $testing;
     }
 
     /**
      * Class factory constructor
      * 
-     * @return static 
+     * @return ClientInterface 
      */
-    public static function new(bool $testing = false)
+    public static function new(bool $testing = false): ClientInterface
     {
-        return new static($testing);
+        if ($testing) {
+            return new TestClient;
+        }
+        return new static();
     }
 
 
@@ -50,8 +50,6 @@ final class Client
      */
     public function sendRequest(string $url, string $method = 'GET', array $body = [], array $headers = []): Response
     {
-        //# TODO: Case testing, do someting
-
         // Reset the current curl instance before sending any new HTTP request
         $this->curl->release();
         $this->curl->init();

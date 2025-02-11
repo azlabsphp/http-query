@@ -12,33 +12,33 @@ namespace Drewlabs\Query\Http;
 
 use BadMethodCallException;
 use Drewlabs\Query\Builder as QueryBuilder;
-use Drewlabs\Query\Http\Concerns\QueryLanguageClient;
+use Drewlabs\Query\Http\Concerns\RESTClient;
 use InvalidArgumentException;
 use Drewlabs\Query\Contracts\BuilderInterface;
 use Drewlabs\Query\Http\Concerns\Builder;
 use Drewlabs\Query\Http\Utils\AggregationColumn;
 
 /**
- * @method JsonResponse delete(string $id)
- * @method JsonResponse delete(int $id)
- * @method JsonResponse update(string $id, $attributes)
- * @method JsonResponse update(string $id, $attributes, array $relations)
- * @method JsonResponse update(int $id, $attributes)
- * @method JsonResponse update(int $id, $attributes, array $relations)
- * @method JsonResponse create($attributes)
- * @method JsonResponse create($attributes, array $relations)
- * @method JsonResponse get(string $id, array $columns = ['*'])
- * @method JsonResponse get(JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100)
- * @method JsonResponse get(array $query, array $columns, int $page = 1, $per_page = 100)
- * @method JsonResponse get(JsonBodyBuilder $query, int $page = 1, $per_page = 100)
- * @method JsonResponse get(array $query, int $page = 1, $per_page = 100)
+ * @method QueryResult delete(string $id)
+ * @method QueryResult delete(int $id)
+ * @method QueryResult update(string $id, $attributes)
+ * @method QueryResult update(string $id, $attributes, array $relations)
+ * @method QueryResult update(int $id, $attributes)
+ * @method QueryResult update(int $id, $attributes, array $relations)
+ * @method QueryResult create($attributes)
+ * @method QueryResult create($attributes, array $relations)
+ * @method QueryResult get(string $id, array $columns = ['*'])
+ * @method QueryResult get(JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100)
+ * @method QueryResult get(array $query, array $columns, int $page = 1, $per_page = 100)
+ * @method QueryResult get(JsonBodyBuilder $query, int $page = 1, $per_page = 100)
+ * @method QueryResult get(array $query, int $page = 1, $per_page = 100)
  * 
  * 
  * @package Drewlabs\Query\Http\Concerns
  */
-class Query implements BuilderInterface
+final class Query implements BuilderInterface
 {
-    use QueryLanguageClient;
+    use RESTClient;
     use Builder;
 
     /** @var string */
@@ -170,7 +170,7 @@ class Query implements BuilderInterface
      */
     public function count($column = '*', ?string $relation = null): int
     {
-        return $this->executeAggreateQuery(__FUNCTION__, $column, $relation);
+        return $this->executeAggreateQuery(__FUNCTION__, $column, $relation) ?? 0;
     }
 
     /**
@@ -231,6 +231,16 @@ class Query implements BuilderInterface
     public function getUrl(): string
     {
         return implode('/', $this->uriComponents ?? []);
+    }
+
+    /**
+     * returns the list query request headers
+     * 
+     * @return array<string, string> 
+     */
+    public function getHeaders()
+    {
+        return $this->__HEADERS__;
     }
 
     /**

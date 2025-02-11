@@ -1,12 +1,13 @@
 <?php
 
-use Drewlabs\Curl\REST\BaseResponse;
-use Drewlabs\Curl\REST\Response;
-use Drewlabs\Curl\REST\Testing\TestClient;
-use Drewlabs\RestQuery\Query;
+namespace Drewlabs\Query\Http\Tests;
+
+use Drewlabs\Query\Http\Query;
+use Drewlabs\Query\Http\Response;
+use Drewlabs\Query\Http\TestClient;
 use PHPUnit\Framework\TestCase;
 
-class RESTQueryClientTest extends TestCase
+class RESTClientTest extends TestCase
 {
     /**
      * Returns a list of posts
@@ -67,32 +68,32 @@ class RESTQueryClientTest extends TestCase
 
     public function test_create_query()
     {
-        TestClient::for('api/posts', new Response($this->createPost(), 200), 'POST');
+        TestClient::for('api/posts', new Response(json_encode(['data' => $this->createPost()]), 200), 'POST');
         $result = Query::new('http://localhost/api/posts')->test()->create([]);
-        $this->assertEquals($this->createPost(), $result);
+        $this->assertEquals($this->createPost(), $result->get('data'));
     }
 
-    public function test_select_query()
+    public function test_get_query()
     {
-        TestClient::for('api/posts', new Response($this->getPosts(), 200));
-        TestClient::for('api/posts/2', new Response($this->getPost(2), 200));
-        $result = Query::new('http://localhost/api/posts')->test()->select(2);
-        $this->assertEquals($this->getPost(2), $result);
-        $result = Query::new('http://localhost/api/posts')->test()->select();
-        $this->assertEquals($this->getPosts(), $result);
+        TestClient::for('api/posts', new Response(json_encode(['data' => $this->getPosts()]), 200));
+        TestClient::for('api/posts/2', new Response(json_encode($this->getPost(2)), 200));
+        $result = Query::new('http://localhost/api/posts')->test()->get(2);
+        $this->assertEquals($this->getPost(2), $result->getBody());
+        $result = Query::new('http://localhost/api/posts')->test()->get();
+        $this->assertEquals($this->getPosts(), $result->get('data'));
     }
 
     public function test_update_query()
     {
-        TestClient::for('api/posts/2', new Response($this->updatePost(), 200), 'PUT');
+        TestClient::for('api/posts/2', new Response(json_encode($this->updatePost()), 200), 'PUT');
         $result = Query::new('http://localhost/api/posts')->test()->update(2, []);
-        $this->assertEquals($this->updatePost(), $result);
+        $this->assertEquals($this->updatePost(), $result->getBody());
     }
 
     public function test_delete_query()
     {
-        TestClient::for('api/posts/2', new BaseResponse(false, 200), 'DELETE');
+        TestClient::for('api/posts/2', new Response(json_encode(false), 200), 'DELETE');
         $result = Query::new('http://localhost/api/posts')->test()->delete(2);
-        $this->assertEquals(false, $result);
+        $this->assertEquals(200, $result->getStatusCode());
     }
 }

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drewlabs\Query\Http;
 
 use ArrayAccess;
 use Drewlabs\Query\Http\Concerns\Response;
 use RuntimeException;
 
-class JsonResponse implements ArrayAccess
+final class QueryResult implements ArrayAccess
 {
     use Response;
 
@@ -60,6 +62,16 @@ class JsonResponse implements ArrayAccess
     }
 
     /**
+     * returns true if `status` property is greater 199 and less than 205
+     * 
+     * @return bool 
+     */
+    public function isOk()
+    {
+        return $this->status >= 200 && 204 >= $this->status;
+    }
+
+    /**
      * Get the value of a given key or default if no value is found
      * 
      * @param string $name 
@@ -74,21 +86,15 @@ class JsonResponse implements ArrayAccess
 
         if (false !== strpos($name, '.')) {
             $keys = explode('.', $name);
-            $count = count($keys);
-            $index = 0;
             $current = $this->data;
-            while ($index < $count) {
-                if (null === $current) {
+            foreach ($keys as $key) {
+                if (is_null($current)) {
                     return call_user_func($default, $name);
                 }
-                $current = array_key_exists($keys[$index], $current) ? $current[$keys[$index]] : $current[$keys[$index]] ?? null;
-                $index += 1;
+                $current = array_key_exists($key, $current) ? $current[$key] : $current[$key] ?? null;
             }
             return $current ?? call_user_func($default, $name);
         }
         return $this->data[$name] ?? call_user_func($default, $name);
     }
-
-    //#TODO: Add getResult and getIterator implementation
-    // public function getResult
 }

@@ -16,14 +16,14 @@ use Drewlabs\Overloadable\Overloadable;
 use Drewlabs\Query\Http\Client;
 use Drewlabs\Query\Http\Contracts\JsonBodyBuilder;
 use Drewlabs\Query\Http\Testing\Testable;
-use Drewlabs\Query\Http\JsonResponse;
+use Drewlabs\Query\Http\QueryResult;
 
 
 /**
  * @method string getUrl()
  * @method array getHeaders()
  */
-trait QueryLanguageClient
+trait RESTClient
 {
     use Overloadable;
     use Testable;
@@ -33,7 +33,7 @@ trait QueryLanguageClient
      * Send a CREATE query to remote service
      * 
      * @param mixed ...$args 
-     * @return JsonResponse 
+     * @return QueryResult 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
      */
@@ -63,7 +63,7 @@ trait QueryLanguageClient
      * Sends an UPDATE query to the endpoint server
      * 
      * @param mixed ...$args 
-     * @return JsonResponse 
+     * @return QueryResult 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
      */
@@ -98,7 +98,7 @@ trait QueryLanguageClient
      * Send a select query to query server
      * 
      * @param mixed ...$args 
-     * @return JsonResponse 
+     * @return QueryResult 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
      */
@@ -115,41 +115,25 @@ trait QueryLanguageClient
         };
         return $this->overload($args, [
             function (array $columns = ['*']) use (&$fn) {
-                return $fn($this->getUrl(), ['body' => ['_columns' => $columns ?? ['*']]]);
+                return $fn($this->getUrl(), ['_columns' => $columns ?? ['*']]);
             },
             function (int $id, array $columns = ['*']) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), [
-                    'body' => ['_columns' => $columns ?? ['*']]
-                ]);
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), ['_columns' => $columns ?? ['*']]);
             },
             function (string $id, array $columns = ['*']) use (&$fn) {
-                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), [
-                    'body' => ['_columns' => $columns ?? ['*']]
-                ]);
+                return $fn(sprintf("%s/%s", rtrim($this->getUrl() ?? '', '/'), strval($id)), ['_columns' => $columns ?? ['*']]);
             },
-            function (JsonBodyBuilder $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->getUrl(), [
-                    'body' => array_merge($query->json(), ['_columns' => $columns]),
-                    'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ]);
+            function (JsonBodyBuilder $query, array $columns, ?int $page = null, $per_page = null) use (&$fn) {
+                return $fn($this->buildQueryUri($this->getUrl(), ['page' => $page, 'per_page' => $per_page]), array_merge(['_query' => $query->json()], ['_columns' => $columns]));
             },
-            function (array $query, array $columns, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->getUrl(), [
-                    'body' => array_merge($query, ['_columns' => $columns]),
-                    'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ]);
+            function (array $query, array $columns, ?int $page = null, $per_page = null) use (&$fn) {
+                return $fn($this->buildQueryUri($this->getUrl(), ['page' => $page, 'per_page' => $per_page]), array_merge(['_query' => $query], ['_columns' => $columns]));
             },
-            function (JsonBodyBuilder $query, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->getUrl(), [
-                    'body' => array_merge($query->json(), ['_columns' => ['*']]),
-                    'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ]);
+            function (JsonBodyBuilder $query, ?int $page = null, $per_page = null) use (&$fn) {
+                return $fn($this->buildQueryUri($this->getUrl(), ['page' => $page, 'per_page' => $per_page]), array_merge(['_query' => $query->json()], ['_columns' => ['*']]));
             },
-            function (array $query, int $page = 1, $per_page = 100) use (&$fn) {
-                return $fn($this->getUrl(), [
-                    'body' => array_merge($query, ['_columns' => ['*']]),
-                    'query' => ['page' => $page ?? 1, 'per_page' => $per_page ?? 100]
-                ]);
+            function (array $query, ?int $page = null, $per_page = null) use (&$fn) {
+                return $fn($this->buildQueryUri($this->getUrl(), ['page' => $page, 'per_page' => $per_page]), array_merge(['_query' => $query], ['_columns' => ['*']]));
             }
         ]);
     }
@@ -158,7 +142,7 @@ trait QueryLanguageClient
      * Send a DELETE query to the end server
      * 
      * @param mixed ...$args 
-     * @return JsonResponse 
+     * @return QueryResult 
      * @throws BadMethodCallException 
      * @throws MethodCallExpection 
      */
@@ -182,5 +166,20 @@ trait QueryLanguageClient
                 return $fn(sprintf("%s/%s", rtrim($this->getUrl(), '/'), $id));
             }
         ]);
+    }
+
+    /**
+     * Construct an http url with query parameters based on provided parameters
+     * 
+     * @param string $url 
+     * @param array $query 
+     * @return string 
+     */
+    private function buildQueryUri(string $url, array $query = []): string
+    {
+        $p = mb_strpos($url, '?') === false ? '?' : '&';
+        return sprintf('%s%s%s', $url, $p, http_build_query(array_filter($query, function ($item) {
+            return !is_null($item);
+        })));
     }
 }
