@@ -7,7 +7,11 @@ namespace Drewlabs\Query\Http\Concerns;
 use BadMethodCallException;
 use Drewlabs\Query\Builder as QueryBuilder;
 use Drewlabs\Query\Http\Utils\AggregationColumn;
+use Drewlabs\Query\Utils\SubQuery;
 
+/**
+ * @mixin \Drewlabs\Query\Contracts\BuilderInterface
+ */
 trait Builder
 {
     /** @var QueryBuilder */
@@ -21,13 +25,13 @@ trait Builder
 
     public function and($column, ?string $operator = null, $value = null)
     {
-        $this->builder = $this->builder->and($column, $operator, $value);
+        $this->builder = $this->builder->and($this->createSubQuery($column), $operator, $value);
         return $this;
     }
 
     public function or($column, ?string $operator = null, $value = null)
     {
-        $this->builder = $this->builder->or($column, $operator, $value);
+        $this->builder = $this->builder->or($this->createSubQuery($column), $operator, $value);
         return $this;
     }
 
@@ -57,25 +61,25 @@ trait Builder
 
     public function exists(string $column, $query = null)
     {
-        $this->builder = $this->builder->exists($column, $query);
+        $this->builder = $this->builder->exists($column, $this->createExistQuery($query));
         return $this;
     }
 
     public function orExists(string $column, $query = null)
     {
-        $this->builder = $this->builder->orExists($column, $query);
+        $this->builder = $this->builder->orExists($column, $this->createExistQuery($query));
         return $this;
     }
 
     public function notExists(string $column, $query = null)
     {
-        $this->builder = $this->builder->notExists($column, $query);
+        $this->builder = $this->builder->notExists($column, $this->createExistQuery($query));
         return $this;
     }
 
     public function orNotExists(string $column, $query = null)
     {
-        $this->builder = $this->builder->orNotExists($column, $query);
+        $this->builder = $this->builder->orNotExists($column, $this->createExistQuery($query));
         return $this;
     }
 
@@ -216,6 +220,31 @@ trait Builder
     public function gte(string $column, $value = null, $and = true)
     {
         return $and ? $this->and($column, '>=', $value) : $this->or($column, '>=', $value);
+    }
+
+    /**
+     * 
+     * @param string|\Closure(QueryBuilder $builder):QueryBuilder $column
+     * 
+     * @return string|SubQuery
+     */
+    private function createSubQuery($column)
+    {
+        // Creates a subquery instance from the column closure instance because the builder internal implementation uses `getQuery()`
+        // instead of `getRawQuery()` (with the former returning a result containing closures wich are not serializable)
+        return $column instanceof \Closure ? new SubQuery('and', $column(QueryBuilder::new())->getRawQuery()) : $column;
+    }
+
+    /**
+     * creates the existance query filter.
+     *
+     * @param string|\Closure(QueryBuilder $builder):QueryBuilder  $query
+     *
+     * @return string|SubQuery
+     */
+    private function createExistQuery($query)
+    {
+        return $query instanceof \Closure ? new SubQuery('and', $query(QueryBuilder::new())->getRawQuery()) : $query;
     }
 
     private function aggregate(string $method, string $column, ?string $relation)
