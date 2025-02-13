@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Drewlabs\Query\Http\Validation;
 
 use Drewlabs\Query\Http\Query;
+use Illuminate\Contracts\Validation\ValidationRule;
 use InvalidArgumentException;
 
-class Unique
+class Unique implements ValidationRule
 {
     use HasBuilder;
     use HandlesRequestError;

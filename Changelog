@@ -1,0 +1,6 @@
+# Changelogs
+
+
+## [2025-02-13]
+
+- Added dependency to `illuminate/contracts` for validation rule
