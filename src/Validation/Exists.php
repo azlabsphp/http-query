@@ -8,7 +8,7 @@ use Drewlabs\Query\Http\Query;
 use Illuminate\Contracts\Validation\ValidationRule;
 use InvalidArgumentException;
 
-class Exists implements ValidationRule
+final class Exists implements ValidationRule
 {
     use HasBuilder;
     use HandlesRequestError;
