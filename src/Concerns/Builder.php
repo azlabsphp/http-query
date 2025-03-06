@@ -222,6 +222,11 @@ trait Builder
         return $and ? $this->and($column, '>=', $value) : $this->or($column, '>=', $value);
     }
 
+    public function when($value, ?callable $query = null, ?callable $default = null)
+    {
+        return $this->builder->when($value, $query, $default);
+    }
+
     /**
      * 
      * @param string|\Closure(QueryBuilder $builder):QueryBuilder $column

@@ -17,6 +17,7 @@ use InvalidArgumentException;
 use Drewlabs\Query\Contracts\BuilderInterface;
 use Drewlabs\Query\Http\Concerns\Builder;
 use Drewlabs\Query\Http\Utils\AggregationColumn;
+use Drewlabs\Query\Contracts\Conditionable;
 
 /**
  * @method QueryResult delete(string $id)
@@ -34,7 +35,7 @@ use Drewlabs\Query\Http\Utils\AggregationColumn;
  * @method QueryResult get(array $query, int $page = 1, $per_page = 100)
  * 
  * 
- * @package Drewlabs\Query\Http\Concerns
+ * @mixin Conditionable
  */
 final class Query implements BuilderInterface
 {
